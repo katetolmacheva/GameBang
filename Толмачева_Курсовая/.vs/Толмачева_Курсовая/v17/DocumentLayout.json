@@ -1,0 +1,173 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F.njsproj.user||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F.njsproj.user||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\style.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:style.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\script.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:script.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\lobby.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lobby.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\game.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:game.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "package.json",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\package.json",
+              "RelativeDocumentMoniker": "package.json",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\package.json",
+              "RelativeToolTip": "package.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-04-29T05:02:40.32Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "README.md",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\README.md",
+              "RelativeDocumentMoniker": "README.md",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\README.md",
+              "RelativeToolTip": "README.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-04-29T05:02:35.866Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F.njsproj.user",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F.njsproj.user",
+              "RelativeDocumentMoniker": "\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F.njsproj.user",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F.njsproj.user",
+              "RelativeToolTip": "\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F.njsproj.user",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003464|",
+              "WhenOpened": "2025-04-29T05:02:34.03Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "lobby.html",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\lobby.html",
+              "RelativeDocumentMoniker": "lobby.html",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\lobby.html",
+              "RelativeToolTip": "lobby.html",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAAADQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-04-29T00:27:13.607Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "server.js",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\server.js",
+              "RelativeDocumentMoniker": "server.js",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\server.js",
+              "RelativeToolTip": "server.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-28T23:03:23.454Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "script.js",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\script.js",
+              "RelativeDocumentMoniker": "script.js",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\script.js",
+              "RelativeToolTip": "script.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-28T23:03:22.112Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "game.html",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\game.html",
+              "RelativeDocumentMoniker": "game.html",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\game.html",
+              "RelativeToolTip": "game.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-04-28T21:37:28.589Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "style.css",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\style.css",
+              "RelativeDocumentMoniker": "style.css",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\style.css",
+              "RelativeToolTip": "style.css",
+              "ViewState": "AgIAAGYAAAAAAAAAAAAAAOIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-04-28T21:37:20.692Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "index.html",
+              "DocumentMoniker": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\index.html",
+              "RelativeDocumentMoniker": "index.html",
+              "ToolTip": "D:\\\u041A\u0443\u0440\u0441\u0430\u0447\\GameBang\\\u0422\u043E\u043B\u043C\u0430\u0447\u0435\u0432\u0430_\u041A\u0443\u0440\u0441\u043E\u0432\u0430\u044F\\index.html",
+              "RelativeToolTip": "index.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-04-28T21:37:25.092Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

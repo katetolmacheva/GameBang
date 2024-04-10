@@ -12,26 +12,21 @@
 <body id="gamePage">
   <h1>Карточная битва в "Бэнг!"</h1>
 
+  <div id="player-info">
+    <div id="player-role">Роль: </div>
+    <div id="player-hp">Здоровье: </div>
+  </div>
+
   <div id="game-table"></div>
 
   <div class="action-buttons" id="action-buttons">
-    <button id="drawNewCard">Вытянуть карту</button>
-    <button id="heal">Пиво</button>
+  </div>
 
-    <div class="cards-dropdown">
-      <button class="cards-dropdown-btn">Карты ▼</button>
-      <div class="cards-dropdown-content">
-        <button class="card-action-btn" onclick="useWinchester()">Винчестер</button>
-        <button class="card-action-btn" onclick="useMustang()">Мустанг</button>
-        <button class="card-action-btn" onclick="useBarrel()">Бочка</button>
-        <button class="card-action-btn" onclick="useJail()">Тюрьма</button>
-        <button class="card-action-btn" onclick="usePanic()">Паника</button>
-        <button class="card-action-btn" onclick="usePlutovka()">Плутовка</button>
-        <button class="card-action-btn" onclick="playDynamite()">Динамит</button>
-      </div>
-    </div>
-
-    <button id="nextTurn">Завершить ход</button>
+  <div id="debug-info" style="position: fixed; top: 10px; right: 10px; background: white; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+    <strong>Отладка:</strong><br>
+    Текущий ход: <span id="current-turn-debug">-</span><br>
+    Мой ход: <span id="my-turn-debug">-</span><br>
+    Игроков: <span id="players-count">0</span>
   </div>
 
   <script src="script.js"></script>

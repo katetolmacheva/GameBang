@@ -2,14 +2,28 @@ let playedBang = false;
 let gameDeck = [];
 let remainingDeck = [];
 let currentTurn = "";
+let isMyTurn = false;
+let initialTurnHardcodeApplied = false;
 
-const username = sessionStorage.getItem("username");
+let username = sessionStorage.getItem("username");
 const roomId = sessionStorage.getItem("roomId");
 let players = JSON.parse(sessionStorage.getItem("players")) || [];
 
 const socket = new WebSocket("ws://localhost:3000");
+let currentPlayerIndex = -1;
 
-let currentPlayerIndex = players.findIndex(p => p.username === username);
+function updatePlayerIndex() {
+  currentPlayerIndex = players.findIndex(p => p.username === username);
+}
+
+socket.onopen = () => {
+  console.log("Соединение с игрой установлено");
+  socket.send(JSON.stringify({
+    type: "join_room",
+    roomId,
+    username
+  }));
+};
 
 socket.onmessage = (event) => {
   const data = JSON.parse(event.data);
@@ -24,35 +38,76 @@ socket.onmessage = (event) => {
     }
   }
 
-  if (data.type === "game_start") {
-    sessionStorage.setItem("players", JSON.stringify(data.players));
-    window.location.href = "game.html";
+  if (data.type === "game_start" || data.type === "game_update") {
+    const clientUsername = sessionStorage.getItem("username");
+    if (!clientUsername) {
+      console.error("КРИТИЧЕСКАЯ ОШИБКА: Имя пользователя отсутствует в sessionStorage!");
+      alert("Критическая ошибка: Имя пользователя не найдено на клиенте. Попробуйте перезайти.");
+      return;
+    }
+
+    if (username !== clientUsername) {
+      console.warn(`Глобальная переменная username ('${username}') отличается от sessionStorage ('${clientUsername}'). Используем значение из sessionStorage.`);
+    }
+
+    players = data.players;
+    currentTurn = data.currentPlayer;
+    isMyTurn = currentTurn === username;
+    updatePlayerIndex();
+
+    if (data.type === "game_start") {
+      const firstPlayerInReceivedList = players[0];
+      if (firstPlayerInReceivedList && firstPlayerInReceivedList.username === username) {
+        isMyTurn = true;
+        console.log(`Установлен в true для игрока ${username} (индекс 0 в полученном списке).`);
+      } else {
+        isMyTurn = false;
+      }
+    } else if (data.type === "game_update") {
+      isMyTurn = currentTurn === username;
+    }
+
+    console.log(`[${data.type}] currentTurn: ${currentTurn}, username: ${username}, isMyTurn: ${isMyTurn}`);
+
+    sessionStorage.setItem("players", JSON.stringify(players));
+    updateUI();
+    updatePlayerInfo();
+    updateActionButtons();
+    updateDebugInfo();
+
+    if (data.playersCount !== undefined) {
+      document.getElementById("players-count").textContent = data.playersCount;
+    }
   }
 
-  if (data.type === "game_update") {
-    if (window.location.pathname.includes("game.html")) {
-      updateGameUI(data.players);
-    }
+  if (data.type === "error") {
+    console.error("Ошибка сервера:", data.message);
   }
 };
 
 function drawNewCard() {
-  if (remainingDeck.length === 0) {
-    alert("Колода пуста!");
+  if (!isMyTurn) {
+    alert("Сейчас не ваш ход!");
     return;
   }
 
-  const card = remainingDeck.pop();
-  players[currentPlayerIndex].hand.push(card);
-  enforceCardLimit();
-  updateUI();
+  const dummyCard = { name: "Бах", img: "images/bah.png", type: "attack" };
+  const player = players.find(p => p.username === username);
+  if (player && !player.hand.some(card => card.name === dummyCard.name)) {
+    player.hand.push(dummyCard);
+    console.log(`Игроку ${username} добавлена карта ${dummyCard.name}.`);
+    updateUI();
+  } else if (player && player.hand.some(card => card.name === dummyCard.name)) {
+    alert(`У вас уже есть карта ${dummyCard.name}!`);
+  } else {
+    alert("Не удалось добавить карту.");
+  }
 
   socket.send(JSON.stringify({
     type: "game_move",
     roomId,
     username,
-    move: "draw_card",
-    card: card.name
+    move: "draw_card"
   }));
 }
 
@@ -65,39 +120,24 @@ function shuffle(array) {
 }
 
 function attack(targetIndex) {
+  if (!isMyTurn) {
+    alert("Сейчас не ваш ход!");
+    return;
+  }
+
   if (playedBang) {
     alert("Вы уже использовали 'Бах!' в этом ходу!");
     return;
   }
 
   const player = players[currentPlayerIndex];
-  const target = players[targetIndex];
+
 
   let attackCardIndex = player.hand.findIndex(card => card.type === "attack");
   if (attackCardIndex === -1) {
     alert("У вас нет карты 'Бах'!");
     return;
   }
-
-  const attackCard = player.hand.splice(attackCardIndex, 1)[0];
-  playedBang = true;
-
-  const missIndex = target.hand.findIndex(card => card.type === "defense");
-  if (missIndex !== -1) {
-    target.hand.splice(missIndex, 1);
-    alert(`${target.name} уклонился!`);
-  } else {
-    target.hp--;
-    alert(`${target.name} получил урон!`);
-  }
-
-  if (target.hp <= 0) {
-    target.isAlive = false;
-    alert(`${target.name} выбыл из игры!`);
-  }
-
-  updateUI();
-
   socket.send(JSON.stringify({
     type: "game_move",
     roomId,
@@ -105,22 +145,20 @@ function attack(targetIndex) {
     move: "attack",
     target: players[targetIndex].username
   }));
+
 }
 
 function heal() {
-  const player = players[currentPlayerIndex];
-
-  let healCardIndex = player.hand.findIndex(card => card.type === "heal");
-  if (healCardIndex === -1) {
-    alert("У вас нет 'Пива'!");
+  if (!isMyTurn) {
+    alert("Сейчас не ваш ход!");
     return;
   }
 
-  player.hp++;
-  player.hand.splice(healCardIndex, 1);
-  alert(`${player.name} восстановил здоровье!`);
-
-  updateUI();
+  const currentPlayer = players.find(p => p.username === username);
+  if (!currentPlayer.hand.some(c => c.type === "heal")) {
+    alert("У вас нет карты 'Пиво'!");
+    return;
+  }
 
   socket.send(JSON.stringify({
     type: "game_move",
@@ -131,24 +169,27 @@ function heal() {
 }
 
 function playDynamite() {
-  const player = players[currentPlayerIndex];
-
-  let dynamiteIndex = player.hand.findIndex(card => card.type === "dynamite");
-  if (dynamiteIndex === -1) {
-    alert("У вас нет 'Динамита'!");
+  if (!isMyTurn) {
+    alert("Сейчас не ваш ход!");
     return;
   }
 
-  player.activeDynamite = player.hand.splice(dynamiteIndex, 1)[0];
-  alert(`${player.name} заложил 'Динамит'! Теперь все его видят.`);
+  const player = players.find(p => p.username === username);
+  if (!player) return;
 
-  updateUI();
+  const dynamiteCardIndex = player.hand.findIndex(card => card.type === "dynamite");
+
+
+  if (dynamiteCardIndex === -1) {
+    alert("У вас нет 'Динамита'!");
+    return;
+  }
 
   socket.send(JSON.stringify({
     type: "game_move",
     roomId,
     username,
-    move: "dynamite"
+    move: "play_dynamite"
   }));
 }
 
@@ -163,10 +204,21 @@ function enforceCardLimit() {
 function updateUI() {
   const gameTable = document.getElementById("game-table");
   if (!gameTable) return;
+  if (window.location.pathname.includes("game.html") && players && players.length > 0 && username === players[0].username && !initialTurnHardcodeApplied) {
+    const alivePlayersCount = players.filter(p => p.isAlive).length;
+    if (alivePlayersCount > 0) {
+      isMyTurn = true;
+      currentTurn = username;
+      initialTurnHardcodeApplied = true;
+      console.log("Первый ход " + username);
+    }
+  } else {
+    isMyTurn = currentTurn === username;
+  }
 
   gameTable.innerHTML = "";
 
-  players.forEach((player, index) => {
+  players.forEach((player) => {
     const playerDiv = document.createElement("div");
     playerDiv.className = "player-zone";
 
@@ -175,14 +227,18 @@ function updateUI() {
     }
 
     playerDiv.innerHTML = `
-      <h3>${player.username} (${player.role})</h3>
+      <h3>${player.username}: ${player.role}${!player.isAlive ? ' (Выбыл)' : ''}</h3>
       <p>HP: ${player.hp}</p>
+       <div class="player-equipped-cards">
+          ${player.activeDynamite ? '<span class="status-icon" title="Динамит">💣</span>' : ''}
+          ${player.isImprisoned ? '<span class="status-icon" title="В Тюрьма">⛓️</span>' : ''}
+          </div>
       <div class="player-cards">
         ${player.hand?.map(card => {
       if (player.username === username) {
-        return `<img src="${card.img}" alt="${card.name}" class="card" data-type="${card.type}" title="${card.name}">`;
+        return `<img src="${card.img}" alt="${card.name}" class="card" data-type="${card.type}" title="${card.name}" onclick="handleCardClick(event)">`;
       } else {
-        return `<div class="card card-back"></div>`;
+        return `<div class="card card-back" title="${player.hand.length} карт(ы)"></div>`;
       }
     }).join('') || ''}
       </div>
@@ -190,32 +246,32 @@ function updateUI() {
     gameTable.appendChild(playerDiv);
   });
 
-  const currentPlayer = players.find(p => p.username === username);
-  if (currentPlayer) {
-    document.getElementById("player-role").textContent = currentPlayer.role;
-    document.getElementById("player-hp").textContent = currentPlayer.hp;
+  const currentPlayerInfo = players.find(p => p.username === username);
+  if (currentPlayerInfo) {
+    document.getElementById("player-role").textContent = `Роль: ${currentPlayerInfo.role}`;
+    document.getElementById("player-hp").textContent = `Здоровье: ${currentPlayerInfo.hp}`;
+  } else {
+    document.getElementById("player-role").textContent = `Роль: Неизвестно`;
+    document.getElementById("player-hp").textContent = `Здоровье: 0`;
   }
 
   updateActionButtons();
+  updateDebugInfo();
 }
 
 
 function updateActionButtons() {
-  let actions = document.getElementById("action-buttons");
-  if (!actions) {
-    actions = document.createElement("div");
-    actions.id = "action-buttons";
-    actions.className = "action-buttons";
-    document.body.appendChild(actions);
-  } else {
-    actions.innerHTML = '';
-  }
+  const actions = document.getElementById("action-buttons");
+  if (!actions) return;
 
-  const currentPlayer = players[currentPlayerIndex];
-  if (!currentPlayer || currentPlayer.username !== username) {
-    actions.innerHTML = "Ваш ход!";
+  actions.innerHTML = '';
+  if (!isMyTurn) {
+    actions.innerHTML = `<div class="wait-message">Ожидайте хода игрока ${currentTurn}</div>`;
     return;
   }
+
+  const currentPlayer = players.find(p => p.username === username);
+  if (!currentPlayer) return;
 
   const buttons = [
     {
@@ -228,13 +284,13 @@ function updateActionButtons() {
       text: "Использовать 'Пиво'",
       onclick: "heal()",
       id: "heal-btn",
-      disabled: !currentPlayer.hand.some(c => c.name === "Пиво")
+      disabled: !currentPlayer.hand.some(c => c.type === "heal")
     },
     {
       text: "Атаковать",
       onclick: "chooseTarget()",
       id: "attack-btn",
-      disabled: !currentPlayer.hand.some(c => c.name === "Бах") || playedBang
+      disabled: (!currentPlayer.hand.some(c => c.type === "attack") && !currentPlayer.hand.some(c => c.name === "Винчестер")) || playedBang
     },
     {
       text: "Заложить 'Динамит'",
@@ -244,7 +300,7 @@ function updateActionButtons() {
     },
     {
       text: "Завершить ход",
-      onclick: "nextTurn()",
+      onclick: "endTurn()",
       id: "end-turn-btn",
       disabled: false
     }
@@ -259,271 +315,127 @@ function updateActionButtons() {
     actions.appendChild(button);
   });
 }
-
-
-function useCard(player, card) {
-  if (!card || !players[currentPlayerIndex].hand.some(c => c.name === card.name)) {
-    alert("У вас нет этой карты!");
-    return;
-  }
-
-  let cardIndex = player.hand.findIndex(c => c.name === card.name);
-  if (cardIndex === -1) {
-    alert("У вас нет этой карты!");
-    return;
-  }
-
-  switch (card.name) {
-    case "Бах":
-      attack(chooseTargetIndex());
-      removeCardFromHand(player, card);
-      break;
-    case "Промах":
-      alert(`${player.name} использовал Промах и уклонился от атаки!`);
-      removeCardFromHand(player, card);
-      break;
-    case "Пиво":
-      useHeal();
-      removeCardFromHand(player, card);
-      break;
-    case "Динамит":
-      playDynamite();
-      removeCardFromHand(player, card);
-      break;
-    case "Винчестер":
-      useWinchester(player);
-      removeCardFromHand(player, card);
-      break;
-    case "Мустанг":
-      useMustang(player);
-      removeCardFromHand(player, card);
-      break;
-    case "Бочка":
-      useBarrel(player);
-      removeCardFromHand(player, card);
-      break;
-    case "Тюрьма":
-      useJail();
-      removeCardFromHand(player, card);
-      break;
-    case "Паника":
-      usePanic();
-      removeCardFromHand(player, card);
-      break;
-    case "Плутовка":
-      usePlutovka();
-      removeCardFromHand(player, card);
-      break;
-    default:
-      alert("Ошибка: неизвестная карта!");
-  }
-}
-function removeCardFromHand(player, card) {
-  let cardIndex = player.hand.findIndex(c => c.name === card.name);
-  if (cardIndex !== -1) {
-    player.hand.splice(cardIndex, 1);
-  }
-  updateUI();
-}
-
-
-function useJail() {
-  const player = players[currentPlayerIndex];
-  let cardIndex = player.hand.findIndex(card => card.name === "Тюрьма");
-
-  if (cardIndex === -1) {
-    alert("У вас нет карты 'Тюрьма'!");
-    return;
-  }
-
-  let targetIndex = chooseTargetIndex();
-  if (targetIndex === -1) return;
-
-  let target = players[targetIndex];
-  target.isImprisoned = true;
-  player.hand.splice(cardIndex, 1);
-  alert(`${target.name} попал в тюрьму и пропустит следующий ход!`);
-  updateUI();
-}
-
-
-function usePanic() {
-  const player = players[currentPlayerIndex];
-  let cardIndex = player.hand.findIndex(card => card.name === "Паника");
-
-  if (cardIndex === -1) {
-    alert("У вас нет карты 'Паника'!");
-    return;
-  }
-
-  let targetIndex = chooseTargetIndex();
-  if (targetIndex === -1) return;
-
-  let target = players[targetIndex];
-  if (target.hand.length === 0) {
-    alert(`${target.name} не имеет карт!`);
-    return;
-  }
-
-  let stolenCard = target.hand.pop();
-  player.hand.push(stolenCard);
-  player.hand.splice(cardIndex, 1);
-  alert(`${player.name} использовал Панику и украл карту у ${target.name}!`);
-  updateUI();
-
-  socket.send(JSON.stringify({
-    type: "game_move",
-    roomId,
-    username,
-    move: "panic",
-    target: target.name
-  }));
-}
-
-function usePlutovka() {
-  const player = players[currentPlayerIndex];
-  let cardIndex = player.hand.findIndex(card => card.name === "Плутовка");
-
-  if (cardIndex === -1) {
-    alert("У вас нет карты 'Плутовка'!");
-    return;
-  }
-
-  let targetIndex = chooseTargetIndex();
-  if (targetIndex === -1) return;
-
-  let target = players[targetIndex];
-  if (target.hand.length === 0) {
-    alert(`${target.name} не имеет карт для сброса!`);
-    return;
-  }
-
-  target.hand.pop();
-  player.hand.splice(cardIndex, 1);
-  alert(`${player.name} использовал Плутовку и заставил ${target.name} сбросить карту!`);
-  updateUI();
-
-  socket.send(JSON.stringify({
-    type: "game_move",
-    roomId,
-    username,
-    move: "плутовкаovka",
-    target: target.name
-  }));
-}
-
-function useHeal() {
-  const player = players[currentPlayerIndex];
-  let healCardIndex = player.hand.findIndex(card => card.name === "Пиво");
-
-  if (healCardIndex === -1) {
-    alert("У вас нет 'Пива'!");
-    return;
-  }
-
-  player.hp++;
-  player.hand.splice(healCardIndex, 1);
-  alert(`${player.name} восстановил здоровье!`);
-  updateUI();
-}
-
-function useWinchester() {
-  const player = players[currentPlayerIndex];
-  let cardIndex = player.hand.findIndex(card => card.name === "Винчестер");
-
-  if (cardIndex === -1) {
-    alert("У вас нет карты 'Винчестер'!");
-    return;
-  }
-
-  player.weaponRange = 5;
-  player.hand.splice(cardIndex, 1);
-  alert(`${player.name} экипировал Винчестер! Теперь он стреляет дальше.`);
-  updateUI();
-}
-
-function useMustang() {
-  const player = players[currentPlayerIndex];
-  let cardIndex = player.hand.findIndex(card => card.name === "Мустанг");
-
-  if (cardIndex === -1) {
-    alert("У вас нет карты 'Мустанг'!");
-    return;
-  }
-
-  player.isHardToHit = true;
-  player.hand.splice(cardIndex, 1);
-  alert(`${player.name} использует Мустанга! Теперь его сложнее атаковать.`);
-  updateUI();
-}
-
-
-function useBarrel() {
-  const player = players[currentPlayerIndex];
-  let barrelCardIndex = player.hand.findIndex(card => card.name === "Бочка");
-
-  if (barrelCardIndex === -1) {
-    alert("У вас нет карты 'Бочка'!");
-    return;
-  }
-
-  player.hasBarrel = true;
-  player.hand.splice(barrelCardIndex, 1);
-  alert(`${player.name} теперь использует Бочку для защиты!`);
-  updateUI();
-}
-
-
-function chooseTargetIndex() {
-  let availableTargets = players
-    .map((player, index) => ({ index, name: player.name, isAlive: player.isAlive }))
-    .filter(player => player.index !== currentPlayerIndex && player.isAlive);
+function chooseTargetUsername() {
+  const availableTargets = players.filter(p =>
+    p.username !== username &&
+    p.isAlive
+  );
 
   if (availableTargets.length === 0) {
     alert("Нет доступных целей!");
-    return -1;
+    return null;
   }
 
-  let targetList = availableTargets.map((player, i) => `${i + 1}. ${player.name}`).join("\n");
-  let choice = prompt(`Выберите цель для действия:\n${targetList}`);
+  const targetList = availableTargets.map((p, i) => `${i + 1}. ${p.username}`).join('\n');
+  const choice = prompt(`Выберите цель:\n${targetList}`);
 
-  let chosenIndex = parseInt(choice) - 1;
-  if (chosenIndex < 0 || chosenIndex >= availableTargets.length || isNaN(chosenIndex)) {
+  if (!choice) return null;
+
+  const targetIndex = parseInt(choice) - 1;
+  if (isNaN(targetIndex) || targetIndex < 0 || targetIndex >= availableTargets.length) {
     alert("Неверный выбор цели!");
-    return -1;
+    return null;
   }
 
-  return availableTargets[chosenIndex].index;
+  const target = availableTargets[targetIndex];
+  return target.username;
 }
 
 function chooseTarget() {
-  let targetOptions = players
-    .filter((_, index) => index !== currentPlayerIndex && players[index].isAlive)
-    .map((player, index) => `${index + 1}. ${player.name}`)
-    .join("\n");
+  if (!isMyTurn) {
+    alert("Сейчас не ваш ход!");
+    return;
+  }
+  const currentPlayer = players.find(p => p.username === username);
+  if (!currentPlayer) return;
 
-  let choice = prompt(`Выберите цель для атаки:\n${targetOptions}`);
+  const hasAttackCard = currentPlayer.hand.some(c => c.type === "attack") || currentPlayer.hand.some(c => c.name === "Винчестер");
+
+  if (!hasAttackCard) {
+    alert("У вас нет карты для атаки (Бах или Винчестер)!");
+    return;
+  }
+
+  if (playedBang && !currentPlayer.hand.some(c => c.name === "Винчестер")) {
+    alert("Вы уже использовали 'Бах!' в этом ходу! (Но можете использовать Винчестер, если он есть)");
+    return;
+  }
+
+
+  const availableTargets = players.filter(p =>
+    p.username !== username &&
+    p.isAlive
+  );
+
+  if (availableTargets.length === 0) {
+    alert("Нет доступных целей для атаки!");
+    return;
+  }
+
+  const targetList = availableTargets.map((p, i) => `${i + 1}. ${p.username}`).join('\n');
+  const choice = prompt(`Выберите цель для атаки:\n${targetList}`);
 
   if (!choice) return;
 
-  let targetIndex = parseInt(choice) - 1;
-
-  if (targetIndex < 0 || targetIndex >= players.length || targetIndex === currentPlayerIndex || !players[targetIndex].isAlive) {
+  const targetIndex = parseInt(choice) - 1;
+  if (isNaN(targetIndex) || targetIndex < 0 || targetIndex >= availableTargets.length) {
     alert("Неверный выбор цели!");
     return;
   }
 
-  attack(targetIndex);
+  const target = availableTargets[targetIndex];
+
+  let attackMove = "attack";
+  if (currentPlayer.hand.some(c => c.name === "Винчестер")) {
+    attackMove = "attack_winchester";
+  }
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: attackMove,
+    target: target.username
+  }));
 }
 
-function nextTurn() {
-  do {
-    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-  } while (!players[currentPlayerIndex].isAlive || players[currentPlayerIndex].isImprisoned);
-
+function endTurn() {
+  if (!isMyTurn) {
+    alert("Сейчас не ваш ход!");
+    return;
+  }
+  isMyTurn = false;
   playedBang = false;
-  enforceCardLimit();
+
+  const currentPlayersIndex = players.findIndex(p => p.username === username);
+  let nextTurnIndex = currentPlayersIndex;
+  let attempts = 0;
+  let foundNext = false;
+  do {
+    nextTurnIndex = (nextTurnIndex + 1) % players.length;
+    attempts++;
+    if (attempts >= players.length) {
+      console.warn(" Не удалось найти следующего игрока на клиенте.");
+      break;
+    }
+
+    const nextPlayer = players[nextTurnIndex];
+    if (nextPlayer && nextPlayer.isAlive) {
+      currentTurn = nextPlayer.username;
+      console.log(` Ход передан игроку ${currentTurn} на UI.`);
+      foundNext = true;
+      break;
+    }
+
+  } while (!foundNext);
+
+  if (!foundNext) {
+    console.warn(" Ход не передан, так как не найден следующий живой игрок.");
+    currentTurn = null;
+  }
+
   updateUI();
+  updateActionButtons();
 
   socket.send(JSON.stringify({
     type: "game_move",
@@ -533,108 +445,17 @@ function nextTurn() {
   }));
 }
 
-function drawNewCard() {
-  const card = drawCard();
-  players[currentPlayerIndex].hand.push(card);
-  enforceCardLimit();
-  updateUI();
-
-  socket.send(JSON.stringify({
-    type: "game_move",
-    roomId,
-    username,
-    move: "draw_card",
-    card: card.name
-  }));
-}
-
-
-
-socket.onopen = () => {
-  console.log("Соединение с игрой установлено");
-};
-
-socket.onmessage = (event) => {
-  let data;
-  try {
-    data = JSON.parse(event.data);
-  } catch (e) {
-    console.warn("Ошибка JSON:", e);
-    return;
-  }
-
-  if (data.type === "game_update") {
-    players = data.players;
-    currentPlayerIndex = players.findIndex(p => p.username === username);
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.includes("game.html")) {
     updateUI();
+    updatePlayerIndex();
+    if (players && players[currentPlayerIndex]) {
+      updatePlayerInfo();
+      updateDebugInfo();
+    } else {
+    }
   }
-
-  if (data.type === "game_start") {
-    players = data.players;
-    currentTurn = data.currentTurn;
-    currentPlayerIndex = players.findIndex(p => p.username === username);
-    sessionStorage.setItem("players", JSON.stringify(players));
-    updateUI();
-  }
-};
-
-function endTurn() {
-  socket.send(JSON.stringify({
-    type: "game_move",
-    roomId,
-    username,
-    move: `${username} завершил ход`
-  }));
-}
-
-const table = document.getElementById("game-table");
-players.forEach(player => {
-  const div = document.createElement("div");
-  div.className = "player-zone";
-  div.innerHTML = `
-    <h3>${player.username}</h3>
-    <p>Роль: ${username === player.username ? player.role : "???"}</p>
-    <p>HP: ${player.hp}</p>
-<div class="player-cards">
-  ${(() => {
-      console.log("Current player:", player.username, "Hand:", player.hand);
-
-      if (!player.hand || !Array.isArray(player.hand)) {
-        console.error("Invalid hand data for player", player.username);
-        return '';
-      }
-
-      return player.hand.map(card => {
-        if (!card || !card.img) {
-          console.warn("Invalid card data in hand:", card);
-          return '';
-        }
-
-        const isCurrentPlayer = username === player.username;
-        const imgPath = `images/${card.img}`;
-
-        console.log(`Rendering ${isCurrentPlayer ? 'open' : 'closed'} card:`, imgPath);
-
-        return isCurrentPlayer
-          ? `<img src="${imgPath}" alt="${card.name}" class="card" data-type="${card.type}">`
-          : '<div class="card card-back"></div>';
-      }).join('');
-    })()}
-</div>
-  `;
-  table.appendChild(div);
 });
-
-
-function sendGameMove(type, payload = {}) {
-  socket.send(JSON.stringify({
-    type: "game_move",
-    roomId,
-    username,
-    move: type,
-    ...payload
-  }));
-}
 
 function getCardImage(cardName) {
   const map = {
@@ -654,3 +475,185 @@ function getCardImage(cardName) {
   return `images/${map[cardName] || "rubashka.png"}`;
 }
 
+function updatePlayerInfo() {
+  const playerRole = document.getElementById('player-role');
+  const playerHp = document.getElementById('player-hp');
+  const currentPlayer = players.find(p => p.username === username);
+
+  if (currentPlayer) {
+    playerRole.textContent = `Роль: ${currentPlayer.role}`;
+    playerHp.textContent = `Здоровье: ${currentPlayer.hp}`;
+  } else {
+    playerRole.textContent = `Роль: Неизвестно`;
+    playerHp.textContent = `Здоровье: 0`;
+  }
+}
+
+function startGame() {
+  console.log("Кнопка 'Начать игру' нажата на клиенте (вызывается из лобби?).");
+}
+
+function handleCardClick(event) {
+  if (!isMyTurn) {
+    return;
+  }
+
+  const clickedCardElement = event.target.closest('.card');
+  if (!clickedCardElement) return;
+
+  const cardName = clickedCardElement.title;
+  const currentPlayer = players.find(p => p.username === username);
+
+  if (!currentPlayer) {
+    console.error("Текущий игрок не найден!");
+    return;
+  }
+
+  const cardToUse = currentPlayer.hand.find(card => card.name === cardName);
+
+  if (cardToUse) {
+    let moveType = "play_card";
+    let payload = { cardName: cardToUse.name };
+
+    let requiresTarget = false;
+    switch (cardToUse.name) {
+      case "Бах":
+      case "Тюрьма":
+      case "Паника":
+      case "Плутовка":
+        requiresTarget = true;
+        break;
+      case "Пиво":
+      case "Динамит":
+      case "Винчестер":
+      case "Мустанг":
+      case "Бочка":
+      case "Дилижанс":
+        requiresTarget = false;
+        break;
+      case "Промах":
+        alert("Карту 'Промах' нельзя использовать таким образом.");
+        return;
+      default:
+        console.warn(`Неизвестная или необработанная карта: ${cardToUse.name}`);
+        break;
+    }
+    if (requiresTarget) {
+      const targetUsername = chooseTargetUsername();
+      if (!targetUsername) {
+        console.log("Выбор цели отменен или нет доступных целей.");
+        return; 
+      }
+      payload.target = targetUsername;
+    }
+
+    console.log(`${username} использовал карту "${cardName}". Отправляем game_move на сервер.`, payload);
+    socket.send(JSON.stringify({
+      type: "game_move",
+      roomId,
+      username,
+      move: moveType,
+      ...payload
+    }));
+
+    if (cardToUse.name === "Бах" || cardToUse.name === "Винчестер") {
+      const targetPlayer = players.find(p => p.username === payload.target);
+      if (targetPlayer) {
+        const hit = confirm(`Игрок ${payload.target}, у вас есть Промах? (Нажмите OK если есть, Отмена если нет)`);
+        if (!hit) {
+          targetPlayer.hp--;
+          console.log(`Снято 1 HP у ${payload.target}. Текущее HP: ${targetPlayer.hp}`);
+          alert(`${payload.target} получает урон! HP: ${targetPlayer.hp}`);
+          if (targetPlayer.hp <= 0) {
+            targetPlayer.isAlive = false;
+            alert(`${targetPlayer.username} выбыл из игры!`);
+          }
+        } else {
+          console.log(`${payload.target} использовал Промах.`);
+          alert(`${payload.target} использовал Промах!`);
+        }
+      }
+
+      const cardToRemoveIndex = currentPlayer.hand.findIndex(c => c.name === cardName);
+      if (cardToRemoveIndex !== -1) {
+        currentPlayer.hand.splice(cardToRemoveIndex, 1);
+        console.log(`Удалена карта "${cardName}" из руки ${username}.`);
+      }
+
+    } else if (cardToUse.type !== "weapon" && cardToUse.type !== "horse" && cardToUse.type !== "barrel" && cardToUse.name !== "Динамит" && cardToUse.name !== "Тюрьма") {
+      const cardToRemoveIndex = currentPlayer.hand.findIndex(c => c.name === cardName);
+      if (cardToRemoveIndex !== -1) {
+        currentPlayer.hand.splice(cardToRemoveIndex, 1);
+        console.log(` Удалена карта "${cardName}" из руки ${username}.`);
+      }
+    } else {
+      const cardToRemoveIndex = currentPlayer.hand.findIndex(c => c.name === cardName);
+      if (cardToRemoveIndex !== -1) {
+        const equippedCard = currentPlayer.hand.splice(cardToRemoveIndex, 1)[0];
+        console.log(` Карта "${cardName}" убрана из руки для экипировки.`);
+      }
+    }
+
+    updateUI();
+    updatePlayerInfo();
+
+  } else {
+    console.warn(`Карта "${cardName}" не найдена в руке текущего игрока в локальном состоянии.`);
+    alert("У вас нет этой карты!");
+  }
+}
+
+document.addEventListener('click', function (event) {
+  const actionButton = event.target.closest('.action-buttons button');
+  if (actionButton && window.location.pathname.includes("game.html") && players && players.length > 0 && username === players[0].username && isMyTurn) {
+    console.log(`Клик по кнопке действий: ${actionButton.textContent}. Отправляем тестовый game_move.`);
+    socket.send(JSON.stringify({
+      type: "game_move",
+      roomId: sessionStorage.getItem("roomId"),
+      username: sessionStorage.getItem("username"),
+      move: "test_action",
+      buttonId: actionButton.id
+    }));
+    event.preventDefault();
+    event.stopPropagation();
+  }
+});
+
+function updateDebugInfo() {
+  const debugInfo = document.getElementById('debug-info');
+  if (debugInfo) {
+    const playersDebug = players ? players.map(p => ({ username: p.username, isMyTurn: p.isMyTurn || false, isAlive: p.isAlive, hp: p.hp })) : [];
+    console.log(`Обновление Debug Info: currentTurn='${currentTurn}', isMyTurn=${isMyTurn}, players=${JSON.stringify(playersDebug)}`);
+
+    document.getElementById('current-turn-debug').textContent = currentTurn || '-';
+    document.getElementById('my-turn-debug').textContent = isMyTurn ? 'Да' : 'Нет';
+    document.getElementById('players-count').textContent = Array.isArray(players) ? players.length : 0;
+
+    console.log('Debug Info:', {
+      currentTurn,
+      isMyTurn,
+      playersCount: Array.isArray(players) ? players.length : 0,
+      currentPlayerIndex,
+      username
+    });
+  }
+}
+
+function handleCredentialResponse(response) {
+  if (response.credential) {
+    const decodedToken = jwt_decode(response.credential);
+    console.log("Декодированный токен:", decodedToken);
+
+    const username = decodedToken.name || decodedToken.given_name || 'Игрок';
+
+    sessionStorage.setItem("username", username);
+
+    console.log("Авторизация успешна. Перенаправление в лобби.");
+
+    window.location.href = "lobby.html";
+
+  } else {
+    console.error("Ошибка получения учетных данных Google.");
+    alert("Ошибка при входе через Google. Попробуйте снова.");
+  }
+}

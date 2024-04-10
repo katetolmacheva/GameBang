@@ -17,12 +17,14 @@
     <div id="room-section" style="display: none;">
       <h2>Игроки в комнате:</h2>
       <ul id="player-list"></ul>
-      <button id="start-game" onclick="startGame()">Начать игру</button>
+      <button id="ready-button" onclick="toggleReady()">Готов</button>
+      <button id="start-game" onclick="startGame()" disabled>Начать игру</button>
     </div>
   </div>
 
   <script>
     const socket = new WebSocket("ws://localhost:3000");
+    let isReady = false;
 
     socket.onopen = () => {
       console.log("WebSocket подключен");
@@ -45,13 +47,20 @@
         document.getElementById("join-section").style.display = "none";
         document.getElementById("room-section").style.display = "block";
 
-        const list = data.players.map(p => `<li>${p.username}</li>`).join("");
+        const list = data.players.map(p => `<li>${p.username} ${p.isReady ? '✅' : '❌'}</li>`).join("");
         document.getElementById("player-list").innerHTML = list;
+
+        const startButton = document.getElementById("start-game");
+        startButton.disabled = !data.canStart;
       }
 
       if (data.type === "game_start") {
         sessionStorage.setItem("players", JSON.stringify(data.players));
         window.location.href = "game.html";
+      }
+
+      if (data.type === "error") {
+        alert(data.message);
       }
     };
 
@@ -70,6 +79,17 @@
         type: "join_room",
         roomId,
         username
+      }));
+    }
+
+    function toggleReady() {
+      isReady = !isReady;
+      const readyButton = document.getElementById("ready-button");
+      readyButton.textContent = isReady ? "Не готов" : "Готов";
+      readyButton.style.backgroundColor = isReady ? "#4CAF50" : "#8B4513";
+      
+      socket.send(JSON.stringify({
+        type: "player_ready"
       }));
     }
 
