@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Yeseva+One&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игровой стол</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body id="gamePage">
+  <h1>Карточная битва в "Бэнг!"</h1>
+
+  <div id="game-table"></div>
+  <div id="action-buttons" class="action-buttons">
+    <button onclick="drawNewCard()">Вытянуть карту</button>
+    <button onclick="heal()">Использовать 'Пиво'</button>
+    <button onclick="nextTurn()">Завершить ход</button>
+  </div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
