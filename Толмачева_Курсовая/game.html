@@ -13,13 +13,28 @@
   <h1>Карточная битва в "Бэнг!"</h1>
 
   <div id="game-table"></div>
-  <div id="action-buttons" class="action-buttons">
-    <button onclick="drawNewCard()">Вытянуть карту</button>
-    <button onclick="heal()">Использовать 'Пиво'</button>
-    <button onclick="nextTurn()">Завершить ход</button>
-  </div>
 
+  <div class="action-buttons" id="action-buttons">
+    <button id="drawNewCard">Вытянуть карту</button>
+    <button id="heal">Пиво</button>
+
+    <div class="cards-dropdown">
+      <button class="cards-dropdown-btn">Карты ▼</button>
+      <div class="cards-dropdown-content">
+        <button class="card-action-btn" onclick="useWinchester()">Винчестер</button>
+        <button class="card-action-btn" onclick="useMustang()">Мустанг</button>
+        <button class="card-action-btn" onclick="useBarrel()">Бочка</button>
+        <button class="card-action-btn" onclick="useJail()">Тюрьма</button>
+        <button class="card-action-btn" onclick="usePanic()">Паника</button>
+        <button class="card-action-btn" onclick="usePlutovka()">Плутовка</button>
+        <button class="card-action-btn" onclick="playDynamite()">Динамит</button>
+      </div>
+    </div>
+
+    <button id="nextTurn">Завершить ход</button>
+  </div>
 
   <script src="script.js"></script>
 </body>
 </html>
+
