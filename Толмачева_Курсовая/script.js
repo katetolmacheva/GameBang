@@ -1,45 +1,67 @@
-﻿let players = [];
-let currentPlayerIndex = 0;
 let playedBang = false;
+let gameDeck = [];
+let remainingDeck = [];
+let currentTurn = "";
 
-document.addEventListener("DOMContentLoaded", function () {
-  if (document.body.id === "gamePage") {
-    setupGame();
+const username = sessionStorage.getItem("username");
+const roomId = sessionStorage.getItem("roomId");
+let players = JSON.parse(sessionStorage.getItem("players")) || [];
+
+const socket = new WebSocket("ws://localhost:3000");
+
+let currentPlayerIndex = players.findIndex(p => p.username === username);
+
+socket.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  if (data.type === "greeting") {
+    console.log(data.message);
   }
-});
 
-function setupGame() {
-  players = [
-    { id: 0, name: "Шериф", hp: 5, hand: [], role: "Шериф", isAlive: true, activeDynamite: null },
-    { id: 1, name: "Помощник", hp: 4, hand: [], role: "Помощник", isAlive: true, activeDynamite: null },
-    { id: 2, name: "Преступник", hp: 4, hand: [], role: "Преступник", isAlive: true, activeDynamite: null },
-    { id: 3, name: "Маньяк", hp: 4, hand: [], role: "Маньяк", isAlive: true, activeDynamite: null }
-  ];
-
-  players.forEach(player => {
-    for (let i = 0; i < 3; i++) {
-      player.hand.push(drawCard());
+  if (data.type === "room_update") {
+    if (window.location.pathname.includes("lobby.html")) {
+      updateLobbyUI(data.players);
     }
-  });
+  }
 
+  if (data.type === "game_start") {
+    sessionStorage.setItem("players", JSON.stringify(data.players));
+    window.location.href = "game.html";
+  }
+
+  if (data.type === "game_update") {
+    if (window.location.pathname.includes("game.html")) {
+      updateGameUI(data.players);
+    }
+  }
+};
+
+function drawNewCard() {
+  if (remainingDeck.length === 0) {
+    alert("Колода пуста!");
+    return;
+  }
+
+  const card = remainingDeck.pop();
+  players[currentPlayerIndex].hand.push(card);
+  enforceCardLimit();
   updateUI();
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: "draw_card",
+    card: card.name
+  }));
 }
 
-function drawCard() {
-  const deck = [
-    { name: "Бах", img: "images/бах.png", type: "attack" },
-    { name: "Промах", img: "images/промах.png", type: "defense" },
-    { name: "Пиво", img: "images/пиво.png", type: "heal" },
-    { name: "Динамит", img: "images/динамит.png", type: "dynamite" },
-    { name: "Винчестер", img: "images/винчестер.png", type: "weapon", effect: "range+5" },
-    { name: "Мустанг", img: "images/мустанг.png", type: "defense", effect: "hard_to_hit" },
-    { name: "Бочка", img: "images/бочка.png", type: "defense", effect: "dodge_chance" },
-    { name: "Тюрьма", img: "images/тюрьма.png", type: "control", effect: "skip_turn" },
-    { name: "Паника", img: "images/паника.png", type: "interaction", effect: "steal_card" },
-    { name: "Плутовка", img: "images/плутовка.png", type: "interaction", effect: "discard_card" }
-  ];
-
-  return deck[Math.floor(Math.random() * deck.length)];
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
 }
 
 function attack(targetIndex) {
@@ -75,6 +97,14 @@ function attack(targetIndex) {
   }
 
   updateUI();
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: "attack",
+    target: players[targetIndex].username
+  }));
 }
 
 function heal() {
@@ -91,6 +121,13 @@ function heal() {
   alert(`${player.name} восстановил здоровье!`);
 
   updateUI();
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: "heal"
+  }));
 }
 
 function playDynamite() {
@@ -106,6 +143,13 @@ function playDynamite() {
   alert(`${player.name} заложил 'Динамит'! Теперь все его видят.`);
 
   updateUI();
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: "dynamite"
+  }));
 }
 
 function enforceCardLimit() {
@@ -118,59 +162,102 @@ function enforceCardLimit() {
 
 function updateUI() {
   const gameTable = document.getElementById("game-table");
+  if (!gameTable) return;
+
   gameTable.innerHTML = "";
 
   players.forEach((player, index) => {
-    if (!player.isAlive) return;
-
     const playerDiv = document.createElement("div");
-    playerDiv.classList.add("player-zone");
+    playerDiv.className = "player-zone";
 
-    playerDiv.innerHTML = `<h3>${player.name}</h3><p class="hp-text">❤️ ${player.hp}</p>`;
-
-    const cardContainer = document.createElement("div");
-    cardContainer.classList.add("player-cards");
-
-    player.hand.forEach((card, cardIndex) => {
-      const cardElement = document.createElement("div");
-      cardElement.classList.add("card");
-
-      if (index === currentPlayerIndex) {
-        cardElement.style.backgroundImage = `url('${card.img}')`;
-        cardElement.onclick = () => useCard(players[currentPlayerIndex], card);
-      } else {
-        cardElement.style.backgroundImage = `url('images/рубашка.png')`;
-      }
-
-      cardElement.setAttribute("data-name", card.name);
-      cardContainer.appendChild(cardElement);
-    });
-
-    if (player.activeDynamite) {
-      const dynamiteElement = document.createElement("div");
-      dynamiteElement.classList.add("card");
-      dynamiteElement.style.backgroundImage = `url('${player.activeDynamite.img}')`;
-      cardContainer.appendChild(dynamiteElement);
+    if (player.username === currentTurn) {
+      playerDiv.classList.add("current-turn");
     }
 
-    playerDiv.appendChild(cardContainer);
+    playerDiv.innerHTML = `
+      <h3>${player.username} (${player.role})</h3>
+      <p>HP: ${player.hp}</p>
+      <div class="player-cards">
+        ${player.hand?.map(card => {
+      if (player.username === username) {
+        return `<img src="${card.img}" alt="${card.name}" class="card" data-type="${card.type}" title="${card.name}">`;
+      } else {
+        return `<div class="card card-back"></div>`;
+      }
+    }).join('') || ''}
+      </div>
+    `;
     gameTable.appendChild(playerDiv);
   });
 
-  const actions = document.getElementById("action-buttons");
-  actions.innerHTML = `
-        <button onclick="drawNewCard()">Вытянуть карту</button>
-        <button onclick="heal()">Использовать 'Пиво'</button>
-        <button onclick="chooseTarget()">Атаковать</button>
-        <button onclick="playDynamite()">Заложить 'Динамит'</button>
-        <button onclick="nextTurn()">Завершить ход</button>
-        <button onclick="useWinchester()">Использовать 'Винчестер'</button>
-        <button onclick="useMustang()">Использовать 'Мустанг'</button>
-        <button onclick="useBarrel()">Использовать 'Бочку'</button>
-        <button onclick="useJail()">Использовать 'Тюрьму'</button>
-        <button onclick="usePanic()">Использовать 'Панику'</button>
-        <button onclick="usePlutovka()">Использовать 'Плутовку'</button>
-  `;
+  const currentPlayer = players.find(p => p.username === username);
+  if (currentPlayer) {
+    document.getElementById("player-role").textContent = currentPlayer.role;
+    document.getElementById("player-hp").textContent = currentPlayer.hp;
+  }
+
+  updateActionButtons();
+}
+
+
+function updateActionButtons() {
+  let actions = document.getElementById("action-buttons");
+  if (!actions) {
+    actions = document.createElement("div");
+    actions.id = "action-buttons";
+    actions.className = "action-buttons";
+    document.body.appendChild(actions);
+  } else {
+    actions.innerHTML = '';
+  }
+
+  const currentPlayer = players[currentPlayerIndex];
+  if (!currentPlayer || currentPlayer.username !== username) {
+    actions.innerHTML = "Ваш ход!";
+    return;
+  }
+
+  const buttons = [
+    {
+      text: "Вытянуть карту",
+      onclick: "drawNewCard()",
+      id: "draw-card",
+      disabled: false
+    },
+    {
+      text: "Использовать 'Пиво'",
+      onclick: "heal()",
+      id: "heal-btn",
+      disabled: !currentPlayer.hand.some(c => c.name === "Пиво")
+    },
+    {
+      text: "Атаковать",
+      onclick: "chooseTarget()",
+      id: "attack-btn",
+      disabled: !currentPlayer.hand.some(c => c.name === "Бах") || playedBang
+    },
+    {
+      text: "Заложить 'Динамит'",
+      onclick: "playDynamite()",
+      id: "dynamite-btn",
+      disabled: !currentPlayer.hand.some(c => c.name === "Динамит")
+    },
+    {
+      text: "Завершить ход",
+      onclick: "nextTurn()",
+      id: "end-turn-btn",
+      disabled: false
+    }
+  ];
+
+  buttons.forEach(btn => {
+    const button = document.createElement("button");
+    button.textContent = btn.text;
+    button.id = btn.id;
+    button.onclick = new Function(btn.onclick);
+    button.disabled = btn.disabled;
+    actions.appendChild(button);
+  });
 }
 
 
@@ -283,6 +370,14 @@ function usePanic() {
   player.hand.splice(cardIndex, 1);
   alert(`${player.name} использовал Панику и украл карту у ${target.name}!`);
   updateUI();
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: "panic",
+    target: target.name
+  }));
 }
 
 function usePlutovka() {
@@ -307,6 +402,14 @@ function usePlutovka() {
   player.hand.splice(cardIndex, 1);
   alert(`${player.name} использовал Плутовку и заставил ${target.name} сбросить карту!`);
   updateUI();
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: "плутовкаovka",
+    target: target.name
+  }));
 }
 
 function useHeal() {
@@ -421,10 +524,133 @@ function nextTurn() {
   playedBang = false;
   enforceCardLimit();
   updateUI();
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: "end_turn"
+  }));
 }
 
 function drawNewCard() {
-  players[currentPlayerIndex].hand.push(drawCard());
+  const card = drawCard();
+  players[currentPlayerIndex].hand.push(card);
   enforceCardLimit();
   updateUI();
+
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: "draw_card",
+    card: card.name
+  }));
 }
+
+
+
+socket.onopen = () => {
+  console.log("Соединение с игрой установлено");
+};
+
+socket.onmessage = (event) => {
+  let data;
+  try {
+    data = JSON.parse(event.data);
+  } catch (e) {
+    console.warn("Ошибка JSON:", e);
+    return;
+  }
+
+  if (data.type === "game_update") {
+    players = data.players;
+    currentPlayerIndex = players.findIndex(p => p.username === username);
+    updateUI();
+  }
+
+  if (data.type === "game_start") {
+    players = data.players;
+    currentTurn = data.currentTurn;
+    currentPlayerIndex = players.findIndex(p => p.username === username);
+    sessionStorage.setItem("players", JSON.stringify(players));
+    updateUI();
+  }
+};
+
+function endTurn() {
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: `${username} завершил ход`
+  }));
+}
+
+const table = document.getElementById("game-table");
+players.forEach(player => {
+  const div = document.createElement("div");
+  div.className = "player-zone";
+  div.innerHTML = `
+    <h3>${player.username}</h3>
+    <p>Роль: ${username === player.username ? player.role : "???"}</p>
+    <p>HP: ${player.hp}</p>
+<div class="player-cards">
+  ${(() => {
+      console.log("Current player:", player.username, "Hand:", player.hand);
+
+      if (!player.hand || !Array.isArray(player.hand)) {
+        console.error("Invalid hand data for player", player.username);
+        return '';
+      }
+
+      return player.hand.map(card => {
+        if (!card || !card.img) {
+          console.warn("Invalid card data in hand:", card);
+          return '';
+        }
+
+        const isCurrentPlayer = username === player.username;
+        const imgPath = `images/${card.img}`;
+
+        console.log(`Rendering ${isCurrentPlayer ? 'open' : 'closed'} card:`, imgPath);
+
+        return isCurrentPlayer
+          ? `<img src="${imgPath}" alt="${card.name}" class="card" data-type="${card.type}">`
+          : '<div class="card card-back"></div>';
+      }).join('');
+    })()}
+</div>
+  `;
+  table.appendChild(div);
+});
+
+
+function sendGameMove(type, payload = {}) {
+  socket.send(JSON.stringify({
+    type: "game_move",
+    roomId,
+    username,
+    move: type,
+    ...payload
+  }));
+}
+
+function getCardImage(cardName) {
+  const map = {
+    "Бах": "bah.png",
+    "Промах": "promah.png",
+    "Пиво": "pivo.png",
+    "Динамит": "tnt.png",
+    "Паника": "panika.png",
+    "Плутовка": "plutovka.png",
+    "Винчестер": "vinchester.png",
+    "Мустанг": "mustang.png",
+    "Бочка": "bochka.png",
+    "Тюрьма": "prison.png",
+    "Дилижанс": "dilijans.png"
+  };
+
+  return `images/${map[cardName] || "rubashka.png"}`;
+}
+
