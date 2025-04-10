@@ -1,14 +1,33 @@
-﻿{
-  "name": "",
-  "version": "0.0.0",
+{
+  "name": "bang-online",
+  "version": "1.0.0",
   "description": "Толмачева_Курсовая",
   "main": "server.js",
-  "author": {
-    "name": ""
-  },
+  "author": "",
   "devDependencies": {
     "eslint": "^8.21.0"
   },
-  "eslintConfig": {
-  }
+  "eslintConfig": {},
+  "dependencies": {
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2",
+    "ws": "^8.18.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/katetolmacheva/GameBang.git"
+  },
+  "keywords": [
+    "bang",
+    "game"
+  ],
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/katetolmacheva/GameBang/issues"
+  },
+  "homepage": "https://github.com/katetolmacheva/GameBang#readme"
 }
