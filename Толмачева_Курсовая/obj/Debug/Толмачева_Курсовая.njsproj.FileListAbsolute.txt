@@ -1,3 +1,0 @@
-D:\Курсач\Толмачева_Курсовая\Толмачева_Курсовая\obj\Debug\Толмачева_Курсовая.njsproj.AssemblyReference.cache
-D:\Курсач\Толмачева_Курсовая\Толмачева_Курсовая\obj\Debug\Толмачева_Курсовая.njsproj.CoreCompileInputs.cache
-D:\Курсач\Толмачева_Курсовая\Толмачева_Курсовая\bin\Microsoft.NodejsTools.WebRole.dll
