@@ -9,12 +9,72 @@
 <body id="lobbyPage">
   <div id="lobby-container">
     <h1>Комната ожидания</h1>
-    <button id="start-game" onclick="startGame()">Начать игру</button>
+
+    <div id="join-section">
+      <button onclick="joinRoom()">Войти в комнату</button>
+    </div>
+
+    <div id="room-section" style="display: none;">
+      <h2>Игроки в комнате:</h2>
+      <ul id="player-list"></ul>
+      <button id="start-game" onclick="startGame()">Начать игру</button>
+    </div>
   </div>
 
   <script>
+    const socket = new WebSocket("ws://localhost:3000");
+
+    socket.onopen = () => {
+      console.log("WebSocket подключен");
+    };
+
+    socket.onmessage = (event) => {
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch (e) {
+        console.warn("Не JSON сообщение от сервера:", event.data);
+        return;
+      }
+
+      if (data.type === "greeting") {
+        console.log(data.message);
+      }
+
+      if (data.type === "room_update") {
+        document.getElementById("join-section").style.display = "none";
+        document.getElementById("room-section").style.display = "block";
+
+        const list = data.players.map(p => `<li>${p.username}</li>`).join("");
+        document.getElementById("player-list").innerHTML = list;
+      }
+
+      if (data.type === "game_start") {
+        sessionStorage.setItem("players", JSON.stringify(data.players));
+        window.location.href = "game.html";
+      }
+    };
+
+    function joinRoom() {
+      const username = prompt("Введите ваш ник:");
+      const roomId = prompt("Введите ID комнаты (любой текст):");
+      if (!username || !roomId) {
+        alert("Ник и ID комнаты обязательны!");
+        return;
+      }
+
+      sessionStorage.setItem("roomId", roomId);
+      sessionStorage.setItem("username", username);
+
+      socket.send(JSON.stringify({
+        type: "join_room",
+        roomId,
+        username
+      }));
+    }
+
     function startGame() {
-      window.location.href = "game.html";
+      socket.send(JSON.stringify({ type: "start_game" }));
     }
   </script>
 </body>
